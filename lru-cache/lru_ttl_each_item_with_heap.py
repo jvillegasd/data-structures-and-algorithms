@@ -34,6 +34,22 @@ class LRUCacheWithTTL:
         self.cache = OrderedDict()
         self.min_heap = []
 
+    def _evict(self, now_ms: int) -> None:
+        # Evict expired keys first
+        while self.min_heap and self.min_heap[0][0] <= now_ms:
+            expires_at_ms, key = heapq.heappop(self.min_heap)
+
+            is_key_not_refreshed_in_cache = (
+                key in self.cache and
+                self.cache[key]["expires_at_ms"] == expires_at_ms
+            )
+            if is_key_not_refreshed_in_cache:
+                del self.cache[key]
+                return
+
+        # Cache only has live keys, evict LRU key
+        self.cache.popitem(last=False)
+
     def get(self, key: int) -> int:
         if key not in self.cache:
             return -1
@@ -63,22 +79,6 @@ class LRUCacheWithTTL:
                 for key, value in self.cache.items()
             ]
             heapq.heapify(self.min_heap)
-
-    def _evict(self, now_ms: int) -> None:
-        # Evict expired keys first
-        while self.min_heap and self.min_heap[0][0] <= now_ms:
-            expires_at_ms, key = heapq.heappop(self.min_heap)
-
-            is_key_not_refreshed_in_cache = (
-                key in self.cache and
-                self.cache[key]["expires_at_ms"] == expires_at_ms
-            )
-            if is_key_not_refreshed_in_cache:
-                del self.cache[key]
-                return
-
-        # Cache only has live keys, evict LRU key
-        self.cache.popitem(last=False)
 
 
 
