@@ -56,7 +56,7 @@ class LRUCacheWithTTL:
         if len(self.cache) > self.capacity:
             self._evict(now_ms)
 
-        # Rebuild min-heap to keep memory consumption
+        # Rebuild min-heap to keep memory usage
         if len(self.min_heap) > self.HEAP_THRESHOLD * self.capacity:
             self.min_heap = [
                 (value["expires_at_ms"], key)
